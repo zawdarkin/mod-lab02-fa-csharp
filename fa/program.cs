@@ -1,178 +1,153 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace fans
 {
-  public class State
-  {
-    public string Name;
-    public Dictionary<char, State> Transitions;
-    public bool IsAcceptState;
-  }
-
-
-  public class FA1
-  {
-    public static State q1 = new State(){
-      Name = "q1",
-      IsAcceptState = false,
-      Transitions = new Dictionary<char, State>()
-    };
-    public State q2 = new State(){
-      Name = "q2",
-      IsAcceptState = false,
-      Transitions = new Dictionary<char, State>()
-    };
-    public State q3 = new State(){
-      Name = "q3",
-      IsAcceptState = true,
-      Transitions = new Dictionary<char, State>()
-    };
-    
-    public State q4 = new State(){
-      Name = "q4",
-      IsAcceptState = false,
-      Transitions = new Dictionary<char, State>()
-    };
-
-    public State q5 = new State(){
-      Name = "q5",
-      IsAcceptState = false,
-      Transitions = new Dictionary<char, State>()
-    };
-  
-    
-    State InitialState = q1;
-
-    public FA1(){
-      q1.Transitions['0'] = q4;
-      q1.Transitions['1'] = q2;
-      q2.Transitions['0'] = q3;
-      q2.Transitions['1'] = q2;
-      q3.Transitions['0'] = q5;
-      q3.Transitions['1'] = q3;
-      q4.Transitions['0'] = q5;
-      q4.Transitions['1'] = q3;
-      q5.Transitions['0'] = q5;
-      q5.Transitions['1'] = q5;
-    }
-
-    public bool? Run(IEnumerable<char> s)
+    public class State
     {
-      State current = InitialState;
-      foreach (var c in s)
-      {
-        current = current.Transitions[c];
-        if (current == null) return null;
-      }
-      return current.IsAcceptState;
+        public string Identifier { get; set; }
+        public Dictionary<char, State> NextStates { get; set; }
+        public bool IsFinal { get; set; }
     }
 
-  };
-
-  public class FA2
-  {
-   public static State q1 = new State(){
-      Name = "q1",
-      IsAcceptState = false,
-      Transitions = new Dictionary<char, State>()
-    };
-    public State q2 = new State(){
-      Name = "q2",
-      IsAcceptState = true,
-      Transitions = new Dictionary<char, State>()
-    };
-    public State q3 = new State(){
-      Name = "q3",
-      IsAcceptState = false,
-      Transitions = new Dictionary<char, State>()
-    };
-    
-    public State q4 = new State(){
-      Name = "q4",
-      IsAcceptState = true,
-      Transitions = new Dictionary<char, State>()
-    };
-
-    public FA2(){
-      q1.Transitions['0'] = q2;
-      q2.Transitions['0'] = q1;
-      q3.Transitions['1'] = q4;
-      q4.Transitions['1'] = q3;
-    }
-
-    public bool? Run(IEnumerable<char> s)
+    public class FA1
     {
-      State current_0 = q1;
-      State current_1 = q3;
-      foreach (var c in s)
-      {
-        if(c == '1') current_1 = current_1.Transitions[c];
-        else if (c == '0') current_0 = current_0.Transitions[c];
-        else return null;
-      }
-      return current_1.IsAcceptState && current_0.IsAcceptState;
-    }
-  }
-  
-  public class FA3
-  {
-    public static State q1 = new State(){
-      Name = "q1",
-      IsAcceptState = false,
-      Transitions = new Dictionary<char, State>()
-    };
-    public State q2 = new State(){
-      Name = "q2",
-      IsAcceptState = false,
-      Transitions = new Dictionary<char, State>()
-    };
-    public State q3 = new State(){
-      Name = "q3",
-      IsAcceptState = true,
-      Transitions = new Dictionary<char, State>()
-    };
+        private readonly State _startState;
+        
+        public FA1()
+        {
+            var stateA = new State { Identifier = "A", IsFinal = false, NextStates = new Dictionary<char, State>() };
+            var stateB = new State { Identifier = "B", IsFinal = false, NextStates = new Dictionary<char, State>() };
+            var stateC = new State { Identifier = "C", IsFinal = true, NextStates = new Dictionary<char, State>() };
+            var stateD = new State { Identifier = "D", IsFinal = false, NextStates = new Dictionary<char, State>() };
+            var stateE = new State { Identifier = "E", IsFinal = false, NextStates = new Dictionary<char, State>() };
 
-    State InitialState = q1;
-    
-    public FA3(){
-      q1.Transitions['0'] = q1;
-      q1.Transitions['1'] = q2;
-      q2.Transitions['0'] = q1;
-      q2.Transitions['1'] = q3;
-      q3.Transitions['0'] = q3;
-      q3.Transitions['1'] = q3;
+            stateA.NextStates['0'] = stateD;
+            stateA.NextStates['1'] = stateB;
+            
+            stateB.NextStates['0'] = stateC;
+            stateB.NextStates['1'] = stateB;
+            
+            stateC.NextStates['0'] = stateE;
+            stateC.NextStates['1'] = stateC;
+            
+            stateD.NextStates['0'] = stateE;
+            stateD.NextStates['1'] = stateC;
+            
+            stateE.NextStates['0'] = stateE;
+            stateE.NextStates['1'] = stateE;
+
+            _startState = stateA;
+        }
+
+        public bool? Run(IEnumerable<char> input)
+        {
+            var current = _startState;
+            foreach (var symbol in input)
+            {
+                if (!current.NextStates.TryGetValue(symbol, out current))
+                    return null;
+            }
+            return current.IsFinal;
+        }
     }
 
-    public bool? Run(IEnumerable<char> s)
+    public class FA2
     {
-      State current = InitialState;
-      foreach (var c in s)
-      {
-        current = current.Transitions[c];
-        if (current == null) return null;
-      }
-      return current.IsAcceptState;
-    }
-  };
+        private readonly State _stateEvenEven;
+        private readonly State _stateOddEven;
+        private readonly State _stateEvenOdd;
+        private readonly State _stateOddOdd;
+        
+        public FA2()
+        {
+            _stateEvenEven = new State { Identifier = "EE", IsFinal = false, NextStates = new Dictionary<char, State>() };
+            _stateOddEven = new State { Identifier = "OE", IsFinal = false, NextStates = new Dictionary<char, State>() };
+            _stateEvenOdd = new State { Identifier = "EO", IsFinal = false, NextStates = new Dictionary<char, State>() };
+            _stateOddOdd = new State { Identifier = "OO", IsFinal = true, NextStates = new Dictionary<char, State>() };
 
-  class Program
-  {
-    static void Main(string[] args)
-    {
-      String s = "01111";
-      FA1 fa1 = new FA1();
-      bool? result1 = fa1.Run(s);
-      Console.WriteLine(result1);
-      FA2 fa2 = new FA2();
-      bool? result2 = fa2.Run(s);
-      Console.WriteLine(result2);
-      FA3 fa3 = new FA3();
-      bool? result3 = fa3.Run(s);
-      Console.WriteLine(result3);
+            SetupTransitions();
+        }
+
+        private void SetupTransitions()
+        {
+            // Transitions for 0
+            _stateEvenEven.NextStates['0'] = _stateOddEven;
+            _stateOddEven.NextStates['0'] = _stateEvenEven;
+            _stateEvenOdd.NextStates['0'] = _stateOddOdd;
+            _stateOddOdd.NextStates['0'] = _stateEvenOdd;
+            
+            // Transitions for 1
+            _stateEvenEven.NextStates['1'] = _stateEvenOdd;
+            _stateOddEven.NextStates['1'] = _stateOddOdd;
+            _stateEvenOdd.NextStates['1'] = _stateEvenEven;
+            _stateOddOdd.NextStates['1'] = _stateOddEven;
+        }
+
+        public bool? Run(IEnumerable<char> input)
+        {
+            var current0 = _stateEvenEven;
+            var current1 = _stateEvenEven;
+            
+            foreach (var symbol in input)
+            {
+                if (symbol == '0') current0 = current0.NextStates[symbol];
+                else if (symbol == '1') current1 = current1.NextStates[symbol];
+                else return null;
+            }
+            
+            return current0 == _stateOddEven && current1 == _stateEvenOdd;
+        }
     }
-  }
+
+    public class FA3
+    {
+        private readonly State _initial;
+        
+        public FA3()
+        {
+            var stateNo1 = new State { Identifier = "No1", IsFinal = false, NextStates = new Dictionary<char, State>() };
+            var stateOne1 = new State { Identifier = "One1", IsFinal = false, NextStates = new Dictionary<char, State>() };
+            var stateTwo1 = new State { Identifier = "Two1", IsFinal = true, NextStates = new Dictionary<char, State>() };
+
+            stateNo1.NextStates['0'] = stateNo1;
+            stateNo1.NextStates['1'] = stateOne1;
+            
+            stateOne1.NextStates['0'] = stateNo1;
+            stateOne1.NextStates['1'] = stateTwo1;
+            
+            stateTwo1.NextStates['0'] = stateTwo1;
+            stateTwo1.NextStates['1'] = stateTwo1;
+
+            _initial = stateNo1;
+        }
+
+        public bool? Run(IEnumerable<char> input)
+        {
+            var current = _initial;
+            foreach (var symbol in input)
+            {
+                if (!current.NextStates.TryGetValue(symbol, out current))
+                    return null;
+            }
+            return current.IsFinal;
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string testString = "01111";
+            
+            var fa1 = new FA1();
+            Console.WriteLine($"FA1 result: {fa1.Run(testString)}");
+            
+            var fa2 = new FA2();
+            Console.WriteLine($"FA2 result: {fa2.Run(testString)}");
+            
+            var fa3 = new FA3();
+            Console.WriteLine($"FA3 result: {fa3.Run(testString)}");
+        }
+    }
 }
